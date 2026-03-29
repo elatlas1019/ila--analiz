@@ -1,7 +1,6 @@
 from groq import Groq
 import os
 from dotenv import load_dotenv
-import streamlit as st
 
 load_dotenv()
 
@@ -17,7 +16,7 @@ Kendi kendinize ilaç kullanmayınız.
 def get_groq_client():
     api_key = os.getenv("GROQ_API_KEY")
     if not api_key or api_key == "your_groq_api_key_here":
-        raise ValueError("Groq API anahtarı (.env dosyasında) eksik! Lütfen ekleyin.")
+        return None
     return Groq(api_key=api_key)
 
 def analyze_drug(
@@ -28,8 +27,21 @@ def analyze_drug(
 ) -> str:
     """
     Groq LLM ile ilaç analizi yap.
-    Web bilgisi varsa onu kullansın, yoksa genel bilgiden yorum yapsın.
+    Anahtar yoksa fallback olarak Web araması sonucunu biçimlendirir.
     """
+    client = get_groq_client()
+    
+    # KULLANICI API GİRMEDİYSE:
+    if not client:
+        fallback_msg = f"## 💊 {drug_name} - İlaç Hakkında Bilgiler (Otomatik Web Özeti)\n\n"
+        fallback_msg += "*(Not: Sistemde Groq(LLM) API anahtarı girili olmadığı için doğrudan web arama sonuçları gösterilmektedir.)*\n\n"
+        if web_info and "Web'de bilgi bulunamadı" not in web_info:
+            fallback_msg += f"### 🌐 İnternetten Bulunan Veriler:\n{web_info}\n\n"
+        else:
+            fallback_msg += f" {drug_name} ({active_ingredient}) için web üzerinde hızlı bir bilgi bulunamadı.\n\n"
+        fallback_msg += "---\n⚠️ **UYARI**: Bu bilgiler otomatik çekilmiştir ve tıbbi tavsiye değildir. Lütfen doktorunuza veya eczacınıza danışınız."
+        return fallback_msg
+
     prompt = f"""
 İlaç Adı: {drug_name}
 Etken Madde: {active_ingredient}
@@ -62,8 +74,8 @@ Bilgi bulunamayan bölümlerde etken maddeye göre genel yorumda bulun.
 """
 
     try:
-        response = get_groq_client().chat.completions.create(
-            model="llama-3.1-70b-versatile",  # veya mixtral-8x7b-32768
+        response = client.chat.completions.create(
+            model="llama-3.1-70b-versatile",
             messages=[
                 {"role": "system", "content": SYSTEM_PROMPT},
                 {"role": "user", "content": prompt}
@@ -79,8 +91,12 @@ Bilgi bulunamayan bölümlerde etken maddeye göre genel yorumda bulun.
 def quick_ingredient_analysis(ingredients_text: str) -> str:
     """
     Sadece etken madde listesinden hızlı analiz.
-    Web bilgisi olmadan direkt çalışır.
+    Anahtar yoksa uyarı döndürür.
     """
+    client = get_groq_client()
+    if not client:
+        return f"## Hızlı Etken Madde Analizi\n\nOkunan Metin: {ingredients_text[:200]}\n\n(Not: Groq API key eksik olduğu için detaylı analiz yapılamıyor.)"
+
     prompt = f"""
 Aşağıdaki etken madde/ilaç bilgilerini analiz et:
 
@@ -93,7 +109,7 @@ Kısa ve net şekilde:
 4. Muadil alternatifleri neler?
 """
     try:
-        response = get_groq_client().chat.completions.create(
+        response = client.chat.completions.create(
             model="llama-3.1-70b-versatile",
             messages=[
                 {"role": "system", "content": SYSTEM_PROMPT},
