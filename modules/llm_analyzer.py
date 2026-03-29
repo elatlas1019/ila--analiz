@@ -1,10 +1,9 @@
 from groq import Groq
 import os
 from dotenv import load_dotenv
+import streamlit as st
 
 load_dotenv()
-
-client = Groq(api_key=os.getenv("GROQ_API_KEY"))
 
 SYSTEM_PROMPT = """Sen deneyimli bir eczacı ve tıp bilgi asistanısın.
 Kullanıcıya ilaçlar hakkında bilgi verirsin.
@@ -14,6 +13,12 @@ MUTLAKA her cevabın sonuna şu uyarıyı ekle:
 Herhangi bir ilaç kullanmadan önce mutlaka doktorunuza veya eczacınıza danışınız.
 Kendi kendinize ilaç kullanmayınız.
 """
+
+def get_groq_client():
+    api_key = os.getenv("GROQ_API_KEY")
+    if not api_key or api_key == "your_groq_api_key_here":
+        raise ValueError("Groq API anahtarı (.env dosyasında) eksik! Lütfen ekleyin.")
+    return Groq(api_key=api_key)
 
 def analyze_drug(
     drug_name: str,
@@ -57,7 +62,7 @@ Bilgi bulunamayan bölümlerde etken maddeye göre genel yorumda bulun.
 """
 
     try:
-        response = client.chat.completions.create(
+        response = get_groq_client().chat.completions.create(
             model="llama-3.1-70b-versatile",  # veya mixtral-8x7b-32768
             messages=[
                 {"role": "system", "content": SYSTEM_PROMPT},
@@ -88,7 +93,7 @@ Kısa ve net şekilde:
 4. Muadil alternatifleri neler?
 """
     try:
-        response = client.chat.completions.create(
+        response = get_groq_client().chat.completions.create(
             model="llama-3.1-70b-versatile",
             messages=[
                 {"role": "system", "content": SYSTEM_PROMPT},
