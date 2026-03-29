@@ -1,0 +1,32 @@
+/* Mobil uyum ve ek stiller */
+.stApp {
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.warning-box {
+    background: #fff3cd;
+    border: 2px solid #ffc107;
+    border-radius: 10px;
+    padding: 15px;
+    margin: 10px 0;
+    font-weight: bold;
+    color: #856404;
+}
+
+.result-box {
+    background: #f0f7ff;
+    border-left: 4px solid #0066cc;
+    border-radius: 5px;
+    padding: 15px;
+    margin: 10px 0;
+}
+
+@media (max-width: 600px) {
+    .stButton > button {
+        width: 100% !important;
+    }
+    h1 {
+        font-size: 1.5rem !important;
+    }
+}
