@@ -10,7 +10,12 @@ def analyze_image_with_gemini(image: Image.Image) -> dict:
     Gemini Vision Pro ile ilaç kutusunu analiz et.
     OCR + bağlam anlama birlikte yapılır.
     """
-    genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
+    import streamlit as st
+    api_key = os.getenv("GEMINI_API_KEY")
+    if not api_key and "GEMINI_API_KEY" in st.secrets:
+        api_key = st.secrets["GEMINI_API_KEY"]
+        
+    genai.configure(api_key=api_key)
     model = genai.GenerativeModel("gemini-1.5-flash")
 
     prompt = """

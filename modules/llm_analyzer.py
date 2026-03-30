@@ -15,7 +15,11 @@ Kendi kendinize ilaç kullanmayınız.
 """
 
 def get_groq_client():
+    import streamlit as st
     api_key = os.getenv("GROQ_API_KEY")
+    if not api_key and "GROQ_API_KEY" in st.secrets:
+        api_key = st.secrets["GROQ_API_KEY"]
+        
     if not api_key or api_key == "your_groq_api_key_here":
         return None
     return Groq(api_key=api_key)
