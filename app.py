@@ -23,10 +23,31 @@ st.set_page_config(
     page_title="💊 İlaç Analiz Asistanı",
     page_icon="💊",
     layout="centered",
-    initial_sidebar_state="collapsed",
+    initial_sidebar_state="expanded",
 )
-
-# ── Özel CSS ────────────────────────────────────────────────────────────────
+# ── Sidebar (Ayarlar ve Bilgi) ────────────────────────────────────────────────
+with st.sidebar:
+    st.image("https://cdn-icons-png.flaticon.com/512/822/822143.png", width=100)
+    st.title("⚙️ Ayarlar")
+    
+    st.info("💡 **İpucu:** En iyi sonuç için ilaç kutusunu düz bir zeminde, net bir ışık altında çekin.")
+    
+    with st.expander("🛠️ API Durumu"):
+        groq_status = "✅ Bağlı" if os.getenv("GROQ_API_KEY") or ("GROQ_API_KEY" in st.secrets) else "❌ Eksik"
+        gemini_status = "✅ Bağlı" if os.getenv("GEMINI_API_KEY") or ("GEMINI_API_KEY" in st.secrets) else "❌ Eksik"
+        
+        st.write(f"Groq Cloud: {groq_status}")
+        st.write(f"Google Gemini: {gemini_status}")
+        
+    st.divider()
+    st.markdown("""
+    ### 📖 Nasıl Kullanılır?
+    1. İlaç kutusunun fotoğrafını çekin veya yükleyin.
+    2. 'Analiz Et' butonuna basın.
+    3. Yapay zekanın hazırladığı raporu inceleyin.
+    4. İsterseniz PDF olarak indirin.
+    """)
+    st.caption("v2.1.0 - Professional Edition")
 if os.path.exists("assets/style.css"):
     with open("assets/style.css", "r", encoding="utf-8") as f:
         st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
