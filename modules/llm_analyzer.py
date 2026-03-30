@@ -4,8 +4,9 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-SYSTEM_PROMPT = """Sen deneyimli bir eczacı ve tıp bilgi asistanısın.
-Kullanıcıya ilaçlar hakkında bilgi verirsin.
+SYSTEM_PROMPT = """Sen uzman bir farmakolog ve tıp bilgi asistanısın.
+Kullanıcıya ilaçlar hakkında bilimsel, doğru ve anlaşılır bilgi verirsin.
+Yanıtların düzenli bir markdown yapısında olmalıdır.
 MUTLAKA her cevabın sonuna şu uyarıyı ekle:
 
 ⚠️ UYARI: Bu bilgiler genel bilgilendirme amaçlıdır. Tıbbi tavsiye değildir.
@@ -57,9 +58,10 @@ Lütfen şu başlıkları Türkçe olarak kapsamlı şekilde açıkla:
 
 ## ⚗️ Etken Madde ve Etki Mekanizması
 
-## ⚠️ Yan Etkiler
+## ⚠️ Yan Etkiler ve Uyarılar
 - Yaygın yan etkiler
 - Ciddi yan etkiler (varsa)
+- İlaç/Gıda etkileşimleri
 
 ## 🚫 Kimler Kullanmamalı (Kontrendikasyonlar)
 
@@ -102,11 +104,11 @@ Aşağıdaki etken madde/ilaç bilgilerini analiz et:
 
 {ingredients_text[:2000]}
 
-Kısa ve net şekilde:
-1. Bu maddeler/ilaç ne için kullanılır?
-2. Başlıca yan etkileri neler?
-3. Kimler dikkatli olmalı?
-4. Muadil alternatifleri neler?
+Lütfen başlıklar halinde kısa ve net şekilde açıkla:
+1. Kullanım Amacı: Bu madde/ilaç ne için kullanılır?
+2. Yan Etkiler: Başlıca yan etkileri neler?
+3. Kritik Uyarılar: Kimler dikkatli olmalı?
+4. Alternatifler: Benzer etkili diğer maddeler neler?
 """
     try:
         response = client.chat.completions.create(

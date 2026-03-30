@@ -17,8 +17,8 @@ def search_drug_info(drug_name: str) -> str:
 
     try:
         with DDGS() as ddgs:
-            for query in queries[:2]:  # İlk 2 sorgu
-                results = list(ddgs.text(query, max_results=3))
+            for query in queries:
+                results = list(ddgs.text(query, max_results=2))
                 for r in results:
                     results_text += f"\nKaynak: {r.get('href','')}\n"
                     results_text += f"Başlık: {r.get('title','')}\n"

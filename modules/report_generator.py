@@ -2,73 +2,116 @@ from fpdf import FPDF
 import io
 import os
 from datetime import datetime
+import re
 
-def normalize_turkish(text: str) -> str:
+class PDFReport(FPDF):
+    def header(self):
+        # Header background color
+        self.set_fill_color(0, 102, 204) 
+        self.rect(0, 0, 210, 40, 'F')
+        
+        # Title
+        self.set_text_color(255, 255, 255)
+        self.set_font('helvetica', 'B', 20)
+        self.set_xy(10, 10) # Reset X and Y
+        self.cell(0, 10, 'ANTIGRAVITY ILAC ANALIZ', ln=True, align='C')
+        self.set_font('helvetica', 'I', 10)
+        self.set_x(10) # Ensure X is at margin
+        self.cell(0, 10, 'Saglikli Yasam ve Bilgi Asistani', ln=True, align='C')
+        self.set_xy(10, 45) # Move cursor below header
+
+    def footer(self):
+        self.set_y(-15)
+        self.set_font('helvetica', 'I', 8)
+        self.set_text_color(128)
+        self.cell(0, 10, f'Sayfa {self.page_no()} / {{nb}} - Rapor Tarihi: {datetime.now().strftime("%d.%m.%Y")}', align='C')
+
+def clean_for_helvetica(text: str) -> str:
+    """Türkçe karakterleri düzeltir ve Helvetica'nın desteklemediği emojileri/karakterleri temizler."""
     replacements = {
-        'ı': 'i', 'İ': 'I',
-        'ğ': 'g', 'Ğ': 'G',
-        'ü': 'u', 'Ü': 'U',
-        'ş': 's', 'Ş': 'S',
-        'ö': 'o', 'Ö': 'O',
-        'ç': 'c', 'Ç': 'C',
+        'ı': 'i', 'İ': 'I', 'ğ': 'g', 'Ğ': 'G', 'ü': 'u', 'Ü': 'U',
+        'ş': 's', 'Ş': 'S', 'ö': 'o', 'Ö': 'O', 'ç': 'c', 'Ç': 'C',
     }
     for search, replace in replacements.items():
         text = text.replace(search, replace)
-    return text
+    
+    # Emoji ve diğer latin-1 dışı karakterleri temizle
+    # Sadece yazdırılabilir ASCII karakterlerini tutar
+    return text.encode('ascii', 'ignore').decode('ascii')
 
 def generate_pdf_report(drug_name: str, analysis_text: str) -> bytes:
-    """
-    Analiz sonucunu PDF olarak oluştur ve bytes döndür.
-    """
-    pdf = FPDF()
+    """Analiz sonucunu PDF olarak oluştur ve bytes döndür."""
+    pdf = PDFReport()
+    pdf.alias_nb_pages()
     pdf.add_page()
     
-    font_name = "Helvetica"
-    try:
-        base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-        font_path = os.path.join(base_dir, "assets", "DejaVuSans.ttf")
-        bold_font_path = os.path.join(base_dir, "assets", "DejaVuSans-Bold.ttf")
-        if os.path.exists(font_path) and os.path.exists(bold_font_path):
-            pdf.add_font("DejaVu", "", font_path, uni=True)
-            pdf.add_font("DejaVu", "B", bold_font_path, uni=True)
-            font_name = "DejaVu"
-    except:
-        pass
-
-    if font_name == "Helvetica":
-        drug_name = normalize_turkish(drug_name)
-        analysis_text = normalize_turkish(analysis_text)
-
-    # Başlık
-    pdf.set_font(font_name, "B", 16)
-    title_text = f"İlaç Analiz Raporu: {drug_name}" if font_name == "DejaVu" else f"Ilac Analiz Raporu: {drug_name}"
-    pdf.cell(0, 12, title_text, ln=True, align="C")
-    pdf.set_font(font_name, "", 10)
+    # Font setup
+    font_family = "helvetica"
+    # Note: Unicode fonts require .ttf files in assets/
+    # If font files exist, we could use them here.
     
-    date_text = f"Oluşturulma: {datetime.now().strftime('%d.%m.%Y %H:%M')}" if font_name == "DejaVu" else f"Olusturulma: {datetime.now().strftime('%d.%m.%Y %H:%M')}"
-    pdf.cell(0, 8, date_text, ln=True, align="C")
+    # Title Section
+    pdf.set_font(font_family, 'B', 16)
+    pdf.set_text_color(0, 102, 204)
+    pdf.set_x(10)
+    display_name = clean_for_helvetica(drug_name).upper()
+    pdf.cell(190, 10, f"ILAC ANALIZ RAPORU: {display_name}", ln=True)
+    pdf.set_draw_color(0, 102, 204)
+    pdf.line(10, pdf.get_y(), 200, pdf.get_y())
     pdf.ln(5)
 
-    # Uyarı kutusu
+    # Disclaimer Box
     pdf.set_fill_color(255, 243, 205)
-    pdf.set_font(font_name, "B", 10)
-    warning_text = "! BU RAPOR BILGILENDIRME AMACLIDIR. TIBBI TAVSIYE DEGILDIR. ILAC KULLANMADAN ONCE DOKTORUNUZA DANISINIZ."
-    if font_name == "DejaVu":
-        warning_text = "⚠️ BU RAPOR BİLGİLENDİRME AMAÇLIDIR. TIBBİ TAVSİYE DEĞİLDİR. İLAÇ KULLANMADAN ÖNCE DOKTORUNUZA DANIŞINIZ."
-        
-    pdf.multi_cell(0, 8, warning_text, fill=True)
-    pdf.ln(5)
+    pdf.set_text_color(133, 100, 4)
+    pdf.set_font(font_family, 'B', 9)
+    pdf.set_x(10)
+    warning = "YASAL UYARI: Bu rapor yapay zeka tarafindan olusturulmustur. Tibbi tavsiye degildir."
+    pdf.multi_cell(190, 8, warning, border=1, fill=True, align='C')
+    pdf.ln(10)
 
-    # Analiz içeriği
-    pdf.set_font(font_name, "", 11)
-    clean_text = analysis_text.replace("##", "").replace("**", "").replace("*", "")
+    # Parsing and Writing Content
+    pdf.set_text_color(0, 0, 0)
     
-    # Emoji ve özel karakterleri temizle (fpdf Helvetica desteklemez)
-    if font_name == "Helvetica":
-        clean_text = clean_text.encode('ascii', 'ignore').decode('ascii')
+    # Split text into lines to handle markdown basics
+    lines = analysis_text.split('\n')
+    for line in lines:
+        line = line.strip()
+        if not line:
+            pdf.ln(2)
+            continue
+            
+        # Clean for Helvetica
+        line = clean_for_helvetica(line)
         
-    pdf.multi_cell(0, 7, clean_text)
+        # Headers
+        if line.startswith('## '):
+            pdf.ln(4)
+            pdf.set_x(10)
+            pdf.set_font(font_family, 'B', 13)
+            pdf.set_text_color(0, 51, 102)
+            pdf.cell(190, 10, line.replace('## ', '').replace('**',''), ln=True)
+            pdf.set_font(font_family, '', 11)
+            pdf.set_text_color(0, 0, 0)
+        elif line.startswith('### '):
+            pdf.ln(2)
+            pdf.set_x(10)
+            pdf.set_font(font_family, 'B', 11)
+            pdf.cell(190, 8, line.replace('### ', '').replace('**',''), ln=True)
+            pdf.set_font(font_family, '', 11)
+        # Lists
+        elif line.startswith('- ') or line.startswith('* '):
+            pdf.set_font(font_family, '', 11)
+            pdf.set_x(10)
+            # Remove symbols and handle bold markers
+            clean_line = line[2:].replace('**', '')
+            pdf.multi_cell(190, 7, f" @ {clean_line}")
+        else:
+            # Regular text, remove bold markers
+            clean_line = line.replace('**', '').strip()
+            if clean_line:
+                pdf.set_x(10)
+                pdf.set_font(font_family, '', 11)
+                pdf.multi_cell(190, 7, clean_line)
 
-    # PDF'i bytes olarak döndür.
-    # fpdf2'de .output() bytearray döndürür.
-    return bytes(pdf.output())
+    # Output as sequence of bytes
+    return pdf.output()

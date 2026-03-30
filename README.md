@@ -46,7 +46,8 @@ streamlit run app.py
 |--------|------|--------------|
 | Groq | https://console.groq.com | ✅ Ücretsiz |
 | Gemini | https://aistudio.google.com | ✅ Ücretsiz |
-| SerpAPI | https://serpapi.com | ⚠️ Sınırlı ücretsiz |
+| DuckDuckGo | https://duckduckgo.com | ✅ Ücretsiz |
+| EasyOCR | Dahili (Library) | ✅ Ücretsiz |
 
 ## ⚠️ Yasal Uyarı
 Bu uygulama eğitim amaçlıdır. Tıbbi tavsiye vermez.

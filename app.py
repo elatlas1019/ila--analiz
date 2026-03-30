@@ -26,31 +26,18 @@ st.set_page_config(
     initial_sidebar_state="collapsed",
 )
 
-# ── Özel CSS (mobil uyum) ────────────────────────────────────────────────────
-st.markdown("""
-<style>
-    .stApp { max-width: 800px; margin: 0 auto; }
-    .warning-box {
-        background: #fff3cd;
-        border: 2px solid #ffc107;
-        border-radius: 10px;
-        padding: 15px;
-        margin: 10px 0;
-        font-weight: bold;
-    }
-    .result-box {
-        background: #f0f7ff;
-        border-left: 4px solid #0066cc;
-        border-radius: 5px;
-        padding: 15px;
-        margin: 10px 0;
-    }
-    @media (max-width: 600px) {
-        .stButton > button { width: 100% !important; }
-        h1 { font-size: 1.5rem !important; }
-    }
-</style>
-""", unsafe_allow_html=True)
+# ── Özel CSS ────────────────────────────────────────────────────────────────
+if os.path.exists("assets/style.css"):
+    with open("assets/style.css", "r", encoding="utf-8") as f:
+        st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
+else:
+    st.markdown("""
+    <style>
+        .stApp { max-width: 800px; margin: 0 auto; }
+        .warning-box { background: #fff3cd; border: 2px solid #ffc107; border-radius: 10px; padding: 15px; margin: 10px 0; }
+        .result-box { background: #f0f7ff; border-left: 4px solid #0066cc; padding: 15px; margin: 10px 0; }
+    </style>
+    """, unsafe_allow_html=True)
 
 # ── Başlık ───────────────────────────────────────────────────────────────────
 st.title("💊 İlaç Analiz Asistanı")
@@ -155,28 +142,20 @@ if analyze_btn:
 
     # ── Sonuçlar ────────────────────────────────────────────────────────────
     st.divider()
-    st.subheader(f"📋 {drug_name} - Analiz Sonucu")
+    st.header(f"📋 {drug_name} Raporu")
 
-    # Gemini'den gelen yapısal bilgi
+    # Yapısal Bilgi Kartları
     if gemini_data and "hata" not in gemini_data:
-        col_a, col_b, col_c = st.columns(3)
-        with col_a:
-            st.metric("İlaç Adı", gemini_data.get("ilac_adi", "-"))
-        with col_b:
-            st.metric("Etken Madde", gemini_data.get("etken_madde", "-"))
-        with col_c:
-            st.metric("Form", gemini_data.get("form", "-"))
+        m1, m2, m3 = st.columns(3)
+        m1.metric("İlaç", gemini_data.get("ilac_adi", "-"))
+        m2.metric("Etken Madde", gemini_data.get("etken_madde", "-"))
+        m3.metric("Form", gemini_data.get("form", "-"))
 
-    # Ana analiz metni
-    st.markdown(analysis)
+    # Ana İçerik
+    with st.container(border=True):
+        st.markdown(analysis)
 
-    # ── Uyarı (tekrar) ──────────────────────────────────────────────────────
-    st.error(
-        "🏥 ÖNEMLI UYARI: Bu analiz yapay zeka tarafından oluşturulmuştur. "
-        "Tıbbi teşhis veya tedavi tavsiyesi değildir. "
-        "İlaç kullanımı için mutlaka doktorunuza danışınız.",
-        icon="⚠️"
-    )
+    st.warning("⚠️ **YASAL UYARI:** Bu analiz yapay zeka tarafından üretilmiştir. Kesinlikle tıbbi tavsiye değildir.")
 
     # ── İndirme Seçenekleri ─────────────────────────────────────────────────
     st.divider()
