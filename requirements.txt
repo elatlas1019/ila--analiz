@@ -1,11 +1,8 @@
 streamlit
-groq
-google-generativeai
 easyocr
-Pillow
-requests
-python-dotenv
-duckduckgo-search
-fpdf2
 opencv-python-headless
-numpy
+google-generativeai
+groq
+duckduckgo-search==6.2.11
+fpdf2
+python-dotenv
