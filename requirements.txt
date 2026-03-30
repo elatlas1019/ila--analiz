@@ -1,8 +1,8 @@
 streamlit
-easyocr
-opencv-python-headless
 google-generativeai
 groq
+Pillow
+requests
+python-dotenv
 duckduckgo-search==6.2.11
 fpdf2
-python-dotenv

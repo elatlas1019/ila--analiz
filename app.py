@@ -8,7 +8,6 @@ from dotenv import load_dotenv
 import sys
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
-from modules.ocr_reader import extract_text_from_image
 from modules.gemini_vision import analyze_image_with_gemini
 from modules.web_search import search_drug_info
 from modules.llm_analyzer import analyze_drug, quick_ingredient_analysis
@@ -131,14 +130,9 @@ if analyze_btn:
             except Exception:
                 st.write("⚠️ Gemini hatası, OCR deneniyor...")
 
-            # Gemini başarısızsa OCR dene
+            # Gemini bittiyse (veya hata verdiyse) sürece devam et
             if not drug_name:
-                st.write("🔡 OCR ile metin okunuyor...")
-                raw_text = extract_text_from_image(image)
-                cleaned = clean_ocr_text(raw_text)
-                drug_name = extract_drug_name(cleaned)
-                active_ingredient = cleaned
-                st.write(f"✅ Metin okundu: {cleaned[:100]}...")
+                st.warning("⚠️ İlaç kutusu net okunamadı. Lütfen fotoğrafın net olduğundan emin olun veya manuel giriş yapın.")
 
         elif manual_drug:
             drug_name = manual_drug
